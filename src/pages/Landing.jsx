@@ -1,361 +1,271 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Zap, Share2, Trophy, Clock, FileUp, Check, GraduationCap, Star, Users, Sparkles } from 'lucide-react';
+import { ArrowRight, Upload, Sparkles, Share2, Trophy, BarChart3, Download, MessageCircle, Users, Clock, FileText, Check, Star, GraduationCap } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import AnimatedCounter from '../components/AnimatedCounter';
-import ParticleBackground from '../components/ParticleBackground';
 
-const FeatureCard = ({ icon: Icon, title, desc, color, gradient }) => (
+// Differentiator item
+const DiffItem = ({ icon: Icon, label }) => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#505050', fontSize: '0.875rem', fontWeight: '500' }}>
+        <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#F0F0F0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Icon size={16} strokeWidth={1.5} />
+        </div>
+        {label}
+    </div>
+);
+
+// Step card for How It Works
+const StepCard = ({ number, title, desc, icon: Icon }) => (
     <motion.div
-        initial={{ opacity: 0, y: 30 }}
+        initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-50px" }}
-        whileHover={{ y: -8, transition: { duration: 0.2 } }}
+        viewport={{ once: true }}
         style={{
-            padding: '2rem',
+            textAlign: 'center',
+            padding: '1.5rem',
             background: 'white',
-            border: '1px solid #E5E7EB',
-            borderRadius: '20px',
-            cursor: 'pointer',
-            transition: 'box-shadow 0.3s ease',
+            borderRadius: '12px',
+            border: '1px solid #EBEBEB',
         }}
-        onMouseEnter={e => e.currentTarget.style.boxShadow = '0 20px 40px rgba(0,0,0,0.08)'}
-        onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
     >
-        <motion.div
-            whileHover={{ rotate: [0, -10, 10, 0], scale: 1.1 }}
-            transition={{ duration: 0.4 }}
-            style={{
-                width: '56px',
-                height: '56px',
-                borderRadius: '16px',
-                background: gradient,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: '1.5rem',
-                color: 'white',
-            }}
-        >
-            <Icon size={26} />
-        </motion.div>
-        <h3 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '0.75rem', fontFamily: 'var(--font-display)' }}>{title}</h3>
-        <p style={{ color: '#6B7280', lineHeight: 1.7 }}>{desc}</p>
+        <div style={{
+            width: '48px',
+            height: '48px',
+            borderRadius: '12px',
+            background: '#3D9A8B',
+            color: 'white',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 1rem',
+            fontSize: '1.125rem',
+            fontWeight: '700',
+        }}>
+            {number}
+        </div>
+        <Icon size={28} strokeWidth={1.5} style={{ color: '#3D9A8B', marginBottom: '0.75rem' }} />
+        <h3 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.375rem', color: '#1A1A1A' }}>{title}</h3>
+        <p style={{ fontSize: '0.8125rem', color: '#707070', lineHeight: 1.5 }}>{desc}</p>
     </motion.div>
 );
 
-const PricingCard = ({ name, price, features, popular, buttonText, to }) => (
+// Feature card
+const FeatureCard = ({ icon: Icon, title, desc }) => (
     <motion.div
-        initial={{ opacity: 0, y: 30 }}
+        initial={{ opacity: 0, y: 16 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        whileHover={{ y: -4 }}
+        whileHover={{ y: -2, boxShadow: '0 8px 24px rgba(0,0,0,0.06)' }}
         style={{
-            padding: '2rem',
-            borderRadius: '20px',
-            border: popular ? '2px solid #1A1A2E' : '1px solid #E5E7EB',
-            background: popular ? 'linear-gradient(180deg, #FAFBFC 0%, #FFFFFF 100%)' : 'white',
-            position: 'relative',
-            boxShadow: popular ? '0 20px 40px rgba(0,0,0,0.1)' : 'none',
+            padding: '1.25rem',
+            background: 'white',
+            border: '1px solid #EBEBEB',
+            borderRadius: '10px',
+            transition: 'all 0.2s ease',
         }}
     >
-        {popular && (
-            <div style={{
-                position: 'absolute',
-                top: 0,
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                background: '#1A1A2E',
-                color: 'white',
-                fontSize: '0.625rem',
-                fontWeight: '700',
-                padding: '0.375rem 0.875rem',
-                borderRadius: '999px',
-                textTransform: 'uppercase',
-                letterSpacing: '0.1em',
-            }}>
-                Most Popular
-            </div>
-        )}
-        <h3 style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem' }}>{name}</h3>
-        <div style={{ fontSize: '2.5rem', fontWeight: '800', marginBottom: '1.5rem' }}>
-            {price} <span style={{ fontSize: '1rem', fontWeight: '400', color: '#9CA3AF' }}>/mo</span>
+        <div style={{
+            width: '40px',
+            height: '40px',
+            borderRadius: '10px',
+            background: '#E8F5F2',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: '0.875rem',
+            color: '#3D9A8B',
+        }}>
+            <Icon size={20} strokeWidth={1.5} />
         </div>
-        <ul style={{ listStyle: 'none', padding: 0, marginBottom: '1.5rem' }}>
-            {features.map((feature, idx) => (
-                <li key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#4B5563', marginBottom: '0.75rem' }}>
-                    <Check size={18} style={{ color: '#22C55E' }} /> {feature}
-                </li>
-            ))}
-        </ul>
-        <Link
-            to={to}
-            className={`btn ${popular ? 'btn-primary' : 'btn-outline'}`}
-            style={{ display: 'block', textAlign: 'center', padding: '1rem' }}
-        >
-            {buttonText}
-        </Link>
+        <h3 style={{ fontSize: '0.9375rem', fontWeight: '600', marginBottom: '0.25rem', color: '#1A1A1A' }}>{title}</h3>
+        <p style={{ color: '#707070', lineHeight: 1.5, fontSize: '0.8125rem' }}>{desc}</p>
+    </motion.div>
+);
+
+// Testimonial card
+const TestimonialCard = ({ name, role, quote, avatar }) => (
+    <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        style={{
+            background: 'white',
+            borderRadius: '10px',
+            padding: '1.25rem',
+            border: '1px solid #EBEBEB',
+        }}
+    >
+        <div style={{ display: 'flex', gap: '0.2rem', marginBottom: '0.75rem' }}>
+            {[1, 2, 3, 4, 5].map(i => <Star key={i} size={12} style={{ fill: '#F5A623', color: '#F5A623' }} />)}
+        </div>
+        <p style={{ color: '#404040', lineHeight: 1.5, marginBottom: '0.875rem', fontSize: '0.875rem' }}>"{quote}"</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+            <div style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                background: '#3D9A8B',
+                color: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: '600',
+                fontSize: '0.6875rem',
+            }}>
+                {avatar}
+            </div>
+            <div>
+                <div style={{ fontWeight: '600', fontSize: '0.8125rem', color: '#1A1A1A' }}>{name}</div>
+                <div style={{ fontSize: '0.6875rem', color: '#707070' }}>{role}</div>
+            </div>
+        </div>
     </motion.div>
 );
 
 const Landing = () => {
     const features = [
-        { icon: FileUp, title: "Zero-Effort Upload", desc: "Drop your PDFs, PPTs, or raw notes. Our AI parses context instantly.", gradient: 'linear-gradient(135deg, #4361EE 0%, #7C3AED 100%)' },
-        { icon: Zap, title: "AI Generation", desc: "Get 10+ high-quality MCQ questions with explanations in under 30 seconds.", gradient: 'linear-gradient(135deg, #F43F5E 0%, #FB7185 100%)' },
-        { icon: Share2, title: "One-Click Share", desc: "Send a magic link to your students via WhatsApp or Google Classroom.", gradient: 'linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%)' },
-        { icon: Trophy, title: "Live Leaderboards", desc: "Fuel healthy competition with real-time rankings and performance metrics.", gradient: 'linear-gradient(135deg, #8B5CF6 0%, #A78BFA 100%)' },
-        { icon: Clock, title: "Time Saver", desc: "Reduce 2 hours of quiz prep to just 30 seconds. Focus on teaching.", gradient: 'linear-gradient(135deg, #22C55E 0%, #4ADE80 100%)' },
-        { icon: Sparkles, title: "Auto Grading", desc: "Detailed results for every student, automatically graded and analyzed.", gradient: 'linear-gradient(135deg, #06B6D4 0%, #22D3EE 100%)' }
+        { icon: Trophy, title: "Live Leaderboards", desc: "Real-time rankings fuel healthy competition in your classroom." },
+        { icon: BarChart3, title: "Smart Analytics", desc: "Track student performance with detailed insights and reports." },
+        { icon: Share2, title: "One-Click Share", desc: "Send quiz links via WhatsApp, email, or Google Classroom." },
+        { icon: Download, title: "Export Anywhere", desc: "Download as PDF, Word, or print-ready format instantly." },
+        { icon: Users, title: "Teacher Dashboard", desc: "Manage all quizzes and classes from a central hub." },
+        { icon: MessageCircle, title: "WhatsApp Ready", desc: "Built for Indian classrooms with WhatsApp integration." },
     ];
 
     const testimonials = [
-        { name: "Priya Sharma", role: "Math Teacher, Delhi", quote: "LectureClosure cut my quiz prep from 2 hours to 5 minutes. Game changer!", avatar: "PS" },
-        { name: "Rahul Mehta", role: "Science Faculty, Pune", quote: "Students love the live leaderboard. Engagement has never been higher.", avatar: "RM" },
-        { name: "Anita Desai", role: "English Teacher, Mumbai", quote: "The AI understands context so well. Questions are always relevant.", avatar: "AD" },
+        { name: "Priya Sharma", role: "Math Teacher, Delhi", quote: "LectureClosure cut my quiz prep from 2 hours to 5 minutes. My students love the leaderboard!", avatar: "PS" },
+        { name: "Rahul Mehta", role: "Science Faculty, Pune", quote: "The analytics help me understand exactly where students struggle. Game changer!", avatar: "RM" },
+        { name: "Anita Desai", role: "English Teacher, Mumbai", quote: "Sharing quizzes via WhatsApp is so convenient. Parents love the progress reports.", avatar: "AD" },
     ];
 
     return (
-        <div style={{ background: '#FFFFFF', position: 'relative' }}>
-            {/* Interactive Particle Background */}
-            <ParticleBackground particleCount={80} />
+        <div style={{ background: '#FAFAFA', minHeight: '100vh' }}>
 
             {/* Hero Section */}
-            <section style={{ padding: '5rem 0 6rem', position: 'relative', overflow: 'hidden', zIndex: 1 }}>
-                {/* Background gradient */}
-                <div style={{
-                    position: 'absolute',
-                    top: '-50%',
-                    right: '-20%',
-                    width: '800px',
-                    height: '800px',
-                    background: 'radial-gradient(circle, rgba(67, 97, 238, 0.08) 0%, transparent 60%)',
-                    pointerEvents: 'none',
-                }} />
-                <div style={{
-                    position: 'absolute',
-                    bottom: '-30%',
-                    left: '-10%',
-                    width: '600px',
-                    height: '600px',
-                    background: 'radial-gradient(circle, rgba(249, 115, 22, 0.06) 0%, transparent 60%)',
-                    pointerEvents: 'none',
-                }} />
-
-                <div className="container" style={{ textAlign: 'center', maxWidth: '900px', margin: '0 auto', padding: '0 1.5rem', position: 'relative', zIndex: 1 }}>
+            <section style={{ padding: '4rem 1.5rem 3rem', background: 'linear-gradient(180deg, #FFFFFF 0%, #F5F5F5 100%)' }}>
+                <div style={{ maxWidth: '800px', margin: '0 auto', textAlign: 'center' }}>
                     <motion.div
-                        initial={{ opacity: 0, y: 30 }}
+                        initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6 }}
+                        transition={{ duration: 0.5 }}
                     >
                         {/* Badge */}
-                        <motion.div
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            transition={{ delay: 0.2 }}
+                        <div style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            padding: '0.375rem 0.875rem',
+                            background: '#E8F5F2',
+                            borderRadius: '999px',
+                            fontSize: '0.75rem',
+                            fontWeight: '600',
+                            color: '#3D9A8B',
+                            marginBottom: '1.5rem'
+                        }}>
+                            <Sparkles size={14} />
+                            Free for teachers
+                        </div>
+
+                        {/* Headline */}
+                        <h1 style={{
+                            fontSize: 'clamp(1.75rem, 5vw, 3rem)',
+                            marginBottom: '1rem',
+                            lineHeight: 1.15,
+                            fontFamily: 'var(--font-display)',
+                            fontWeight: '700',
+                            color: '#1A1A1A',
+                            letterSpacing: '-0.02em',
+                        }}>
+                            Turn your lectures into<br />
+                            <span style={{ color: '#3D9A8B' }}>quizzes in 30 seconds</span>
+                        </h1>
+
+                        <p style={{
+                            fontSize: '1rem',
+                            color: '#606060',
+                            marginBottom: '1.5rem',
+                            maxWidth: '480px',
+                            margin: '0 auto 1.5rem',
+                            lineHeight: 1.6
+                        }}>
+                            Upload notes, PPTs, or PDFs. Get AI-generated quizzes with live leaderboards. Share with unlimited students for free.
+                        </p>
+
+                        {/* Single CTA */}
+                        <Link
+                            to="/create"
                             style={{
                                 display: 'inline-flex',
                                 alignItems: 'center',
                                 gap: '0.5rem',
-                                padding: '0.5rem 1rem',
-                                background: 'linear-gradient(135deg, #EEF2FF 0%, #FDF4FF 100%)',
-                                border: '1px solid #E0E7FF',
-                                borderRadius: '999px',
-                                fontSize: '0.875rem',
+                                fontSize: '0.9375rem',
+                                padding: '0.875rem 1.75rem',
+                                background: '#3D9A8B',
+                                color: 'white',
+                                borderRadius: '8px',
+                                textDecoration: 'none',
                                 fontWeight: '600',
-                                color: '#4361EE',
-                                marginBottom: '2rem'
+                                boxShadow: '0 4px 14px rgba(61, 154, 139, 0.3)',
+                                transition: 'all 0.2s ease',
                             }}
                         >
-                            <motion.span
-                                animate={{ scale: [1, 1.3, 1] }}
-                                transition={{ repeat: Infinity, duration: 2 }}
-                                style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#4361EE' }}
-                            />
-                            New: AI-powered Video Analysis
-                        </motion.div>
-
-                        {/* Headline */}
-                        <motion.h1
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.3 }}
-                            style={{
-                                fontSize: 'clamp(2.5rem, 7vw, 4.5rem)',
-                                marginBottom: '1.5rem',
-                                lineHeight: 1.1,
-                                fontFamily: 'var(--font-display)',
-                                fontWeight: '800',
-                            }}
-                        >
-                            Turn your lectures into <br />
-                            <span style={{
-                                background: 'linear-gradient(135deg, #4361EE 0%, #7C3AED 100%)',
-                                WebkitBackgroundClip: 'text',
-                                WebkitTextFillColor: 'transparent',
-                                fontStyle: 'italic',
-                            }}>
-                                quizzes
-                            </span> in seconds.
-                        </motion.h1>
-
-                        <motion.p
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.4 }}
-                            style={{
-                                fontSize: '1.25rem',
-                                color: '#6B7280',
-                                marginBottom: '2.5rem',
-                                maxWidth: '600px',
-                                margin: '0 auto 2.5rem',
-                                lineHeight: 1.7
-                            }}
-                        >
-                            Upload your notes, PPTs, or PDFs. LectureClosure uses AI to generate engaging quizzes and leaderboards for your students.
-                        </motion.p>
-
-                        {/* CTAs */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.5 }}
-                            style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', justifyContent: 'center' }}
-                        >
-                            <Link
-                                to="/create"
-                                className="btn btn-primary"
-                                style={{
-                                    fontSize: '1.125rem',
-                                    padding: '1.25rem 2.5rem',
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: '0.5rem',
-                                    boxShadow: '0 12px 32px rgba(67, 97, 238, 0.3)',
-                                }}
-                            >
-                                Create a Quiz Now
-                                <ArrowRight size={20} />
-                            </Link>
-                            <a
-                                href="#features"
-                                className="btn btn-outline"
-                                style={{ fontSize: '1.125rem', padding: '1.25rem 2.5rem' }}
-                            >
-                                Explore Features
-                            </a>
-                        </motion.div>
-                    </motion.div>
-
-                    {/* Floating UI Preview */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 60 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.7, duration: 0.8 }}
-                        style={{ marginTop: '4rem', perspective: '1000px' }}
-                    >
-                        <motion.div
-                            animate={{ y: [0, -10, 0] }}
-                            transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut' }}
-                            style={{
-                                background: 'white',
-                                borderRadius: '16px',
-                                border: '1px solid #E5E7EB',
-                                boxShadow: '0 40px 80px rgba(0,0,0,0.12)',
-                                padding: '1.5rem',
-                                maxWidth: '500px',
-                                margin: '0 auto',
-                            }}
-                        >
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-                                <div style={{ display: 'flex', gap: '0.375rem' }}>
-                                    <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#EF4444' }} />
-                                    <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#F59E0B' }} />
-                                    <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#22C55E' }} />
-                                </div>
-                                <div style={{ fontSize: '0.75rem', color: '#9CA3AF', fontWeight: '500' }}>LectureClosure Quiz</div>
-                            </div>
-                            <div style={{ background: '#F9FAFB', borderRadius: '12px', padding: '1rem' }}>
-                                <div style={{ fontSize: '0.625rem', color: '#4361EE', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>Question 1 of 10</div>
-                                <div style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '1rem' }}>What is the primary function of mitochondria?</div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                                    {['Energy production (ATP)', 'Protein synthesis', 'Cell division', 'DNA replication'].map((opt, idx) => (
-                                        <div key={idx} style={{
-                                            padding: '0.625rem 0.875rem',
-                                            borderRadius: '8px',
-                                            border: idx === 0 ? '2px solid #4361EE' : '1px solid #E5E7EB',
-                                            background: idx === 0 ? '#EEF2FF' : 'white',
-                                            fontSize: '0.875rem',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '0.5rem',
-                                        }}>
-                                            <div style={{
-                                                width: '20px',
-                                                height: '20px',
-                                                borderRadius: '6px',
-                                                background: idx === 0 ? '#4361EE' : '#F3F4F6',
-                                                color: idx === 0 ? 'white' : '#9CA3AF',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                fontSize: '0.75rem',
-                                                fontWeight: '700',
-                                            }}>
-                                                {String.fromCharCode(65 + idx)}
-                                            </div>
-                                            {opt}
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </motion.div>
+                            Create Your First Quiz
+                            <ArrowRight size={18} />
+                        </Link>
+                        <p style={{ fontSize: '0.75rem', color: '#999', marginTop: '0.625rem' }}>No signup required • 100% free</p>
                     </motion.div>
                 </div>
             </section>
 
-            {/* Stats Bar */}
-            <section style={{ padding: '3rem 0', background: '#FAFBFC', borderTop: '1px solid #F3F4F6', borderBottom: '1px solid #F3F4F6' }}>
-                <div className="container">
-                    <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '3rem' }}>
-                        {[
-                            { value: 10000, suffix: '+', label: 'Quizzes Created' },
-                            { value: 500, suffix: '+', label: 'Teachers' },
-                            { value: 50000, suffix: '+', label: 'Students Reached' },
-                        ].map((stat, idx) => (
-                            <motion.div
-                                key={idx}
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: idx * 0.1 }}
-                                style={{ textAlign: 'center' }}
-                            >
-                                <div style={{ fontSize: '2.5rem', fontWeight: '800', color: '#1A1A2E' }}>
-                                    <AnimatedCounter value={stat.value} duration={2} suffix={stat.suffix} />
-                                </div>
-                                <div style={{ fontSize: '0.875rem', color: '#6B7280', fontWeight: '500' }}>{stat.label}</div>
-                            </motion.div>
-                        ))}
+            {/* Differentiators Bar */}
+            <section style={{ padding: '1.5rem 1rem', background: 'white', borderTop: '1px solid #EBEBEB', borderBottom: '1px solid #EBEBEB' }}>
+                <div style={{ maxWidth: '700px', margin: '0 auto', display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '1.5rem' }}>
+                    <DiffItem icon={Sparkles} label="Free Forever" />
+                    <DiffItem icon={Share2} label="Share Instantly" />
+                    <DiffItem icon={Trophy} label="Live Leaderboard" />
+                    <DiffItem icon={Download} label="Export Anywhere" />
+                </div>
+            </section>
+
+            {/* How It Works */}
+            <section style={{ padding: '4rem 1.5rem' }}>
+                <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+                    <motion.div
+                        initial={{ opacity: 0, y: 16 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        style={{ textAlign: 'center', marginBottom: '2rem' }}
+                    >
+                        <h2 style={{ fontSize: 'clamp(1.375rem, 4vw, 2rem)', marginBottom: '0.5rem', fontFamily: 'var(--font-display)', fontWeight: '700', color: '#1A1A1A' }}>
+                            How It Works
+                        </h2>
+                        <p style={{ fontSize: '0.9375rem', color: '#707070' }}>From upload to quiz in 3 simple steps</p>
+                    </motion.div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                        <StepCard number="1" icon={Upload} title="Upload Content" desc="Drop your PDF, PPT, notes, or just paste text" />
+                        <StepCard number="2" icon={Sparkles} title="AI Generates Quiz" desc="Get 10+ MCQ questions with explanations in seconds" />
+                        <StepCard number="3" icon={Share2} title="Share & Track" desc="Send link to students and watch live leaderboard" />
                     </div>
                 </div>
             </section>
 
             {/* Features Grid */}
-            <section id="features" style={{ padding: '6rem 0' }}>
-                <div className="container">
+            <section style={{ padding: '3rem 1.5rem 4rem', background: 'white' }}>
+                <div style={{ maxWidth: '900px', margin: '0 auto' }}>
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }}
+                        initial={{ opacity: 0, y: 16 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        style={{ textAlign: 'center', marginBottom: '4rem' }}
+                        style={{ textAlign: 'center', marginBottom: '2rem' }}
                     >
-                        <h2 style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', marginBottom: '1rem', fontFamily: 'var(--font-display)', fontWeight: '800' }}>
-                            Everything teacher-led.
+                        <h2 style={{ fontSize: 'clamp(1.375rem, 4vw, 2rem)', marginBottom: '0.5rem', fontFamily: 'var(--font-display)', fontWeight: '700', color: '#1A1A1A' }}>
+                            Built for Indian Teachers
                         </h2>
-                        <p style={{ fontSize: '1.25rem', color: '#6B7280' }}>Built specifically for the modern Indian classroom.</p>
+                        <p style={{ fontSize: '0.9375rem', color: '#707070' }}>Everything you need to engage your classroom</p>
                     </motion.div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
                         {features.map((feature, idx) => (
                             <FeatureCard key={idx} {...feature} />
                         ))}
@@ -363,169 +273,213 @@ const Landing = () => {
                 </div>
             </section>
 
-            {/* Testimonials */}
-            <section style={{ padding: '6rem 0', background: '#FAFBFC' }}>
-                <div className="container">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        style={{ textAlign: 'center', marginBottom: '3rem' }}
-                    >
-                        <h2 style={{ fontSize: 'clamp(1.75rem, 4vw, 2.5rem)', marginBottom: '1rem', fontFamily: 'var(--font-display)', fontWeight: '800' }}>
-                            Loved by teachers
-                        </h2>
-                        <p style={{ fontSize: '1.125rem', color: '#6B7280' }}>Join hundreds of educators transforming their classrooms</p>
-                    </motion.div>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem', maxWidth: '1000px', margin: '0 auto' }}>
-                        {testimonials.map((t, idx) => (
+            {/* Stats + Testimonials */}
+            <section style={{ padding: '4rem 1.5rem', background: '#FAFAFA' }}>
+                <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+                    {/* Stats */}
+                    <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '3rem', marginBottom: '3rem' }}>
+                        {[
+                            { value: 10000, suffix: '+', label: 'Quizzes Created' },
+                            { value: 500, suffix: '+', label: 'Teachers' },
+                            { value: 50000, suffix: '+', label: 'Students Reached' },
+                        ].map((stat, idx) => (
                             <motion.div
                                 key={idx}
-                                initial={{ opacity: 0, y: 20 }}
+                                initial={{ opacity: 0, y: 16 }}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
                                 transition={{ delay: idx * 0.1 }}
-                                style={{
-                                    background: 'white',
-                                    borderRadius: '16px',
-                                    padding: '1.5rem',
-                                    border: '1px solid #E5E7EB',
-                                }}
+                                style={{ textAlign: 'center' }}
                             >
-                                <div style={{ display: 'flex', gap: '0.25rem', marginBottom: '1rem' }}>
-                                    {[1, 2, 3, 4, 5].map(i => <Star key={i} size={16} style={{ fill: '#FBBF24', color: '#FBBF24' }} />)}
+                                <div style={{ fontSize: '1.75rem', fontWeight: '700', color: '#3D9A8B' }}>
+                                    <AnimatedCounter value={stat.value} duration={2} suffix={stat.suffix} />
                                 </div>
-                                <p style={{ color: '#374151', lineHeight: 1.6, marginBottom: '1rem' }}>"{t.quote}"</p>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                    <div style={{
-                                        width: '40px',
-                                        height: '40px',
-                                        borderRadius: '50%',
-                                        background: 'linear-gradient(135deg, #4361EE 0%, #7C3AED 100%)',
-                                        color: 'white',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        fontWeight: '600',
-                                        fontSize: '0.875rem',
-                                    }}>
-                                        {t.avatar}
-                                    </div>
-                                    <div>
-                                        <div style={{ fontWeight: '600', fontSize: '0.875rem' }}>{t.name}</div>
-                                        <div style={{ fontSize: '0.75rem', color: '#6B7280' }}>{t.role}</div>
-                                    </div>
-                                </div>
+                                <div style={{ fontSize: '0.75rem', color: '#707070', fontWeight: '500' }}>{stat.label}</div>
                             </motion.div>
+                        ))}
+                    </div>
+
+                    {/* Testimonials */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 16 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        style={{ textAlign: 'center', marginBottom: '1.5rem' }}
+                    >
+                        <h2 style={{ fontSize: 'clamp(1.375rem, 4vw, 2rem)', marginBottom: '0.5rem', fontFamily: 'var(--font-display)', fontWeight: '700', color: '#1A1A1A' }}>
+                            Loved by Teachers
+                        </h2>
+                    </motion.div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem' }}>
+                        {testimonials.map((t, idx) => (
+                            <TestimonialCard key={idx} {...t} />
                         ))}
                     </div>
                 </div>
             </section>
 
-            {/* Pricing Section */}
-            <section style={{ padding: '6rem 0' }}>
-                <div className="container">
+            {/* Simple Pricing */}
+            <section style={{ padding: '4rem 1.5rem', background: 'white' }}>
+                <div style={{ maxWidth: '700px', margin: '0 auto' }}>
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }}
+                        initial={{ opacity: 0, y: 16 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        style={{ textAlign: 'center', marginBottom: '4rem' }}
+                        style={{ textAlign: 'center', marginBottom: '2rem' }}
                     >
-                        <h2 style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', marginBottom: '1rem', fontFamily: 'var(--font-display)', fontWeight: '800' }}>
-                            Simple, transparent pricing.
+                        <h2 style={{ fontSize: 'clamp(1.375rem, 4vw, 2rem)', marginBottom: '0.5rem', fontFamily: 'var(--font-display)', fontWeight: '700', color: '#1A1A1A' }}>
+                            Simple Pricing
                         </h2>
-                        <p style={{ fontSize: '1.25rem', color: '#6B7280' }}>Fueling education for teachers across India.</p>
+                        <p style={{ fontSize: '0.9375rem', color: '#707070' }}>Start free, upgrade when you need more</p>
                     </motion.div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem', maxWidth: '1000px', margin: '0 auto' }}>
-                        <PricingCard
-                            name="Basic"
-                            price="₹0"
-                            features={['3 Quizzes / month', '30 Students / quiz', 'Basic Analytics']}
-                            buttonText="Get Started"
-                            to="/create"
-                        />
-                        <PricingCard
-                            name="Teacher Pro"
-                            price="₹199"
-                            features={['Unlimited Quizzes', '100 Students / quiz', 'Full Analytics', 'PDF Export']}
-                            popular={true}
-                            buttonText="Go Pro"
-                            to="/create"
-                        />
-                        <PricingCard
-                            name="School"
-                            price="Custom"
-                            features={['Bulk Management', 'Priority Support', 'Custom Branding']}
-                            buttonText="Contact Sales"
-                            to="/dashboard"
-                        />
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem' }}>
+                        {/* Free Plan */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 16 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            style={{
+                                padding: '1.5rem',
+                                borderRadius: '12px',
+                                border: '1px solid #EBEBEB',
+                                background: 'white',
+                            }}
+                        >
+                            <h3 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.25rem', color: '#1A1A1A' }}>Free</h3>
+                            <div style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '1rem', color: '#1A1A1A' }}>
+                                ₹0 <span style={{ fontSize: '0.75rem', fontWeight: '400', color: '#999' }}>forever</span>
+                            </div>
+                            <ul style={{ listStyle: 'none', padding: 0, marginBottom: '1.25rem' }}>
+                                {['5 quizzes per month', 'Up to 50 students', 'Basic analytics', 'Download as PDF'].map((f, i) => (
+                                    <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#505050', marginBottom: '0.5rem', fontSize: '0.8125rem' }}>
+                                        <Check size={14} style={{ color: '#3D9A8B' }} /> {f}
+                                    </li>
+                                ))}
+                            </ul>
+                            <Link to="/create" style={{
+                                display: 'block',
+                                textAlign: 'center',
+                                padding: '0.75rem',
+                                borderRadius: '8px',
+                                background: 'white',
+                                color: '#1A1A1A',
+                                border: '1px solid #DCDCDC',
+                                textDecoration: 'none',
+                                fontWeight: '500',
+                                fontSize: '0.875rem',
+                            }}>
+                                Get Started
+                            </Link>
+                        </motion.div>
+
+                        {/* Pro Plan */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 16 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: 0.1 }}
+                            style={{
+                                padding: '1.5rem',
+                                borderRadius: '12px',
+                                border: '2px solid #3D9A8B',
+                                background: 'white',
+                                position: 'relative',
+                            }}
+                        >
+                            <div style={{
+                                position: 'absolute',
+                                top: 0,
+                                left: '50%',
+                                transform: 'translate(-50%, -50%)',
+                                background: '#3D9A8B',
+                                color: 'white',
+                                fontSize: '0.625rem',
+                                fontWeight: '600',
+                                padding: '0.25rem 0.75rem',
+                                borderRadius: '999px',
+                                textTransform: 'uppercase',
+                            }}>
+                                Popular
+                            </div>
+                            <h3 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.25rem', color: '#1A1A1A' }}>Pro</h3>
+                            <div style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '1rem', color: '#1A1A1A' }}>
+                                ₹199 <span style={{ fontSize: '0.75rem', fontWeight: '400', color: '#999' }}>/month</span>
+                            </div>
+                            <ul style={{ listStyle: 'none', padding: 0, marginBottom: '1.25rem' }}>
+                                {['Unlimited quizzes', 'Unlimited students', 'Advanced analytics', 'All export formats', 'Priority support'].map((f, i) => (
+                                    <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#505050', marginBottom: '0.5rem', fontSize: '0.8125rem' }}>
+                                        <Check size={14} style={{ color: '#3D9A8B' }} /> {f}
+                                    </li>
+                                ))}
+                            </ul>
+                            <Link to="/create" style={{
+                                display: 'block',
+                                textAlign: 'center',
+                                padding: '0.75rem',
+                                borderRadius: '8px',
+                                background: '#3D9A8B',
+                                color: 'white',
+                                textDecoration: 'none',
+                                fontWeight: '500',
+                                fontSize: '0.875rem',
+                            }}>
+                                Upgrade to Pro
+                            </Link>
+                        </motion.div>
                     </div>
                 </div>
             </section>
 
-            {/* CTA Section */}
-            <section style={{ padding: '6rem 0', background: '#FAFBFC' }}>
-                <div className="container" style={{ maxWidth: '900px', margin: '0 auto', padding: '0 1.5rem' }}>
+            {/* Final CTA */}
+            <section style={{ padding: '4rem 1.5rem', background: '#3D9A8B' }}>
+                <div style={{ maxWidth: '600px', margin: '0 auto', textAlign: 'center' }}>
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
+                        initial={{ opacity: 0, scale: 0.98 }}
                         whileInView={{ opacity: 1, scale: 1 }}
                         viewport={{ once: true }}
-                        style={{
-                            padding: '4rem 2rem',
-                            background: 'linear-gradient(135deg, #1A1A2E 0%, #2D2D44 100%)',
-                            color: 'white',
-                            borderRadius: '24px',
-                            textAlign: 'center',
-                            position: 'relative',
-                            overflow: 'hidden',
-                        }}
                     >
-                        {/* Decorative elements */}
-                        <div style={{ position: 'absolute', top: '-50%', right: '-20%', width: '400px', height: '400px', background: 'radial-gradient(circle, rgba(67, 97, 238, 0.2) 0%, transparent 60%)', pointerEvents: 'none' }} />
-                        <div style={{ position: 'absolute', bottom: '-30%', left: '-10%', width: '300px', height: '300px', background: 'radial-gradient(circle, rgba(124, 58, 237, 0.2) 0%, transparent 60%)', pointerEvents: 'none' }} />
-
-                        <div style={{ position: 'relative', zIndex: 1 }}>
-                            <h2 style={{ fontSize: 'clamp(1.75rem, 4vw, 2.5rem)', marginBottom: '1rem', fontFamily: 'var(--font-display)', fontWeight: '800' }}>
-                                Ready to revolutionize your classroom?
-                            </h2>
-                            <p style={{ color: 'rgba(255,255,255,0.7)', marginBottom: '2rem', fontSize: '1.125rem' }}>
-                                Join 500+ teachers already saving hours on quiz prep
-                            </p>
-                            <Link
-                                to="/create"
-                                className="btn"
-                                style={{
-                                    background: 'white',
-                                    color: '#1A1A2E',
-                                    padding: '1.25rem 2.5rem',
-                                    fontSize: '1.125rem',
-                                    fontWeight: '600',
-                                }}
-                            >
-                                Get Started for Free
-                            </Link>
-                        </div>
+                        <h2 style={{ fontSize: 'clamp(1.375rem, 4vw, 2rem)', marginBottom: '0.625rem', fontFamily: 'var(--font-display)', fontWeight: '700', color: 'white' }}>
+                            Ready to save hours on quiz prep?
+                        </h2>
+                        <p style={{ color: 'rgba(255,255,255,0.85)', marginBottom: '1.5rem', fontSize: '0.9375rem' }}>
+                            Join 500+ teachers already using LectureClosure
+                        </p>
+                        <Link
+                            to="/create"
+                            style={{
+                                display: 'inline-block',
+                                background: 'white',
+                                color: '#3D9A8B',
+                                padding: '0.875rem 2rem',
+                                fontSize: '0.9375rem',
+                                fontWeight: '600',
+                                borderRadius: '8px',
+                                textDecoration: 'none',
+                            }}
+                        >
+                            Get Started for Free
+                        </Link>
                     </motion.div>
                 </div>
             </section>
 
             {/* Footer */}
-            <footer style={{ padding: '3rem 0', borderTop: '1px solid #F3F4F6' }}>
-                <div className="container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem' }}>
+            <footer style={{ padding: '2rem 1.5rem', borderTop: '1px solid #EBEBEB', background: 'white' }}>
+                <div style={{ maxWidth: '900px', margin: '0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <div style={{ width: '32px', height: '32px', background: '#1A1A2E', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
-                            <GraduationCap size={18} />
+                        <div style={{ width: '24px', height: '24px', background: '#3D9A8B', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+                            <GraduationCap size={14} />
                         </div>
-                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: '700', fontSize: '1.25rem' }}>LectureClosure</span>
+                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: '600', fontSize: '0.9375rem', color: '#1A1A1A' }}>LectureClosure</span>
                     </div>
-                    <div style={{ display: 'flex', gap: '2rem', fontSize: '0.875rem', color: '#6B7280' }}>
-                        <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>Privacy Policy</a>
-                        <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>Terms of Service</a>
+                    <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.75rem', color: '#707070' }}>
+                        <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>Privacy</a>
+                        <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>Terms</a>
                         <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>Contact</a>
                     </div>
-                    <p style={{ fontSize: '0.875rem', color: '#9CA3AF' }}>© 2026 LectureClosure AI. Made with ❤️ in India.</p>
+                    <p style={{ fontSize: '0.6875rem', color: '#999' }}>© 2026 LectureClosure. Made with ❤️ in India</p>
                 </div>
             </footer>
         </div>

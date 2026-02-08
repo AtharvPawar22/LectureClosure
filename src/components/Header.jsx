@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { GraduationCap, LayoutDashboard, PlusCircle, Menu, X } from 'lucide-react';
+import { GraduationCap, Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Header = () => {
@@ -18,31 +18,39 @@ const Header = () => {
             position: 'sticky',
             top: 0,
             zIndex: 50,
-            padding: '1rem 0',
-            background: 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(12px)',
-            borderBottom: '1px solid #F3F4F6',
+            padding: '0.875rem 0',
+            background: 'rgba(255, 255, 255, 0.7)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            borderBottom: '1px solid rgba(0, 0, 0, 0.06)',
         }}>
-            <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div className="container" style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                maxWidth: '1200px',
+                margin: '0 auto',
+                padding: '0 1.5rem',
+            }}>
                 {/* Logo */}
-                <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', textDecoration: 'none' }}>
+                <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
                     <div style={{
-                        width: '36px',
-                        height: '36px',
-                        background: '#1A1A2E',
-                        borderRadius: '10px',
+                        width: '32px',
+                        height: '32px',
+                        background: '#1A1A1A',
+                        borderRadius: '8px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         color: 'white',
                     }}>
-                        <GraduationCap size={20} />
+                        <GraduationCap size={18} />
                     </div>
                     <span style={{
                         fontFamily: 'var(--font-display)',
-                        fontSize: '1.375rem',
-                        fontWeight: '700',
-                        color: '#1A1A2E',
+                        fontSize: '1.25rem',
+                        fontWeight: '600',
+                        color: '#1A1A1A',
                         letterSpacing: '-0.02em',
                     }}>
                         LectureClosure
@@ -50,17 +58,18 @@ const Header = () => {
                 </Link>
 
                 {/* Desktop Nav */}
-                <nav style={{ display: 'flex', alignItems: 'center', gap: '2rem' }} className="desktop-nav">
+                <nav className="desktop-nav" style={{ display: 'flex', alignItems: 'center', gap: '2.5rem' }}>
                     {navLinks.map((link) => (
                         <Link
                             key={link.path}
                             to={link.path}
                             style={{
-                                fontSize: '0.9375rem',
+                                fontSize: '0.875rem',
                                 fontWeight: '500',
-                                color: location.pathname === link.path ? '#4361EE' : '#6B7280',
+                                color: location.pathname === link.path ? '#1A1A1A' : '#6B6B6B',
                                 textDecoration: 'none',
                                 transition: 'color 0.2s ease',
+                                letterSpacing: '0.01em',
                             }}
                         >
                             {link.name}
@@ -68,8 +77,16 @@ const Header = () => {
                     ))}
                     <Link
                         to="/create"
-                        className="btn btn-primary"
-                        style={{ padding: '0.625rem 1.25rem', fontSize: '0.875rem' }}
+                        style={{
+                            padding: '0.625rem 1.25rem',
+                            fontSize: '0.875rem',
+                            fontWeight: '500',
+                            background: '#1A1A1A',
+                            color: 'white',
+                            borderRadius: '8px',
+                            textDecoration: 'none',
+                            transition: 'all 0.2s ease',
+                        }}
                     >
                         Get Started
                     </Link>
@@ -85,7 +102,7 @@ const Header = () => {
                         background: 'transparent',
                         border: 'none',
                         cursor: 'pointer',
-                        color: '#1A1A2E',
+                        color: '#1A1A1A',
                     }}
                 >
                     {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -106,10 +123,10 @@ const Header = () => {
                             top: '100%',
                             left: 0,
                             right: 0,
-                            background: 'white',
-                            borderBottom: '1px solid #F3F4F6',
-                            padding: '1rem',
-                            boxShadow: '0 10px 40px rgba(0,0,0,0.08)',
+                            background: 'rgba(255, 255, 255, 0.95)',
+                            backdropFilter: 'blur(16px)',
+                            borderBottom: '1px solid rgba(0, 0, 0, 0.06)',
+                            padding: '1rem 1.5rem',
                         }}
                     >
                         {navLinks.map((link) => (
@@ -119,12 +136,12 @@ const Header = () => {
                                 onClick={() => setIsMenuOpen(false)}
                                 style={{
                                     display: 'block',
-                                    padding: '0.875rem 1rem',
+                                    padding: '0.875rem 0',
                                     fontSize: '1rem',
                                     fontWeight: '500',
-                                    color: '#374151',
+                                    color: '#1A1A1A',
                                     textDecoration: 'none',
-                                    borderRadius: '8px',
+                                    borderBottom: '1px solid rgba(0,0,0,0.05)',
                                 }}
                             >
                                 {link.name}
@@ -133,8 +150,17 @@ const Header = () => {
                         <Link
                             to="/create"
                             onClick={() => setIsMenuOpen(false)}
-                            className="btn btn-primary"
-                            style={{ display: 'block', textAlign: 'center', marginTop: '0.5rem', padding: '1rem' }}
+                            style={{
+                                display: 'block',
+                                textAlign: 'center',
+                                marginTop: '1rem',
+                                padding: '1rem',
+                                background: '#1A1A1A',
+                                color: 'white',
+                                borderRadius: '8px',
+                                textDecoration: 'none',
+                                fontWeight: '500',
+                            }}
                         >
                             Get Started
                         </Link>

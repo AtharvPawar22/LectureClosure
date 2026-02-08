@@ -1,38 +1,20 @@
-import React, { useEffect, useRef, useMemo } from 'react';
+import React, { useEffect, useRef } from 'react';
 
-const ParticleBackground = ({ particleCount = 35 }) => {
+const ParticleBackground = ({ particleCount = 100 }) => {
     const canvasRef = useRef(null);
-    const mouseRef = useRef({ x: null, y: null });
+    const mouseRef = useRef({ x: -1000, y: -1000 });
     const particlesRef = useRef([]);
-    const animationRef = useRef(null);
-
-    // Subtle color palette
-    const colors = useMemo(() => [
-        'rgba(67, 97, 238, 0.4)',   // Blue
-        'rgba(124, 58, 237, 0.35)', // Purple
-        'rgba(244, 63, 94, 0.3)',   // Pink
-        'rgba(245, 158, 11, 0.35)', // Orange
-        'rgba(34, 197, 94, 0.3)',   // Green
-        'rgba(6, 182, 212, 0.35)',  // Cyan
-    ], []);
 
     useEffect(() => {
         const canvas = canvasRef.current;
         const ctx = canvas.getContext('2d');
+        let animationId;
         let width = window.innerWidth;
         let height = window.innerHeight;
 
-        const resizeCanvas = () => {
-            width = window.innerWidth;
-            height = window.innerHeight;
-            canvas.width = width;
-            canvas.height = height;
-        };
+        canvas.width = width;
+        canvas.height = height;
 
-        resizeCanvas();
-        window.addEventListener('resize', resizeCanvas);
-
-        // Initialize particles
         class Particle {
             constructor() {
                 this.reset();
@@ -41,106 +23,128 @@ const ParticleBackground = ({ particleCount = 35 }) => {
             reset() {
                 this.x = Math.random() * width;
                 this.y = Math.random() * height;
-                this.size = Math.random() * 2.5 + 1;
-                this.baseSize = this.size;
-                this.speedX = (Math.random() - 0.5) * 0.3;
-                this.speedY = (Math.random() - 0.5) * 0.3;
-                this.color = colors[Math.floor(Math.random() * colors.length)];
-                // For smooth orbiting around cursor
-                this.angle = Math.random() * Math.PI * 2;
-                this.orbitSpeed = (Math.random() - 0.5) * 0.015;
+                this.baseX = this.x;
+                this.baseY = this.y;
+                this.vx = 0;
+                this.vy = 0;
+
+                // UNIFORM SIZE - all particles same size
+                this.size = 3;
+
+                // Neutral gray color - solid, not blurry
+                this.color = 'rgba(180, 175, 170, 0.7)';
+
+                // Physics
+                this.friction = 0.94;
+                this.floatOffset = Math.random() * Math.PI * 2;
+                this.floatSpeed = 0.003 + Math.random() * 0.005;
+                this.floatAmplitude = 15 + Math.random() * 20;
             }
 
-            update() {
+            update(time) {
                 const mouse = mouseRef.current;
+                const dx = mouse.x - this.x;
+                const dy = mouse.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
 
-                if (mouse.x !== null && mouse.y !== null) {
-                    const dx = mouse.x - this.x;
-                    const dy = mouse.y - this.y;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
-                    const maxDistance = 150;
+                // Large interaction radius
+                const magnetRadius = 300;
 
-                    if (distance < maxDistance) {
-                        // Create orbit effect around cursor
-                        this.angle += this.orbitSpeed;
-                        const orbitRadius = 80 * (distance / maxDistance);
-                        const orbitX = mouse.x + Math.cos(this.angle) * orbitRadius;
-                        const orbitY = mouse.y + Math.sin(this.angle) * orbitRadius;
+                if (distance < magnetRadius && mouse.x > 0) {
+                    const force = Math.pow((magnetRadius - distance) / magnetRadius, 2);
+                    const angle = Math.atan2(dy, dx);
 
-                        // Smooth interpolation towards orbit position
-                        this.x += (orbitX - this.x) * 0.015;
-                        this.y += (orbitY - this.y) * 0.015;
+                    // SLOWER orbit - reduced from 0.4 to 0.15
+                    const orbitStrength = 0.15;
+                    const tangentAngle = angle + Math.PI / 2;
 
-                        // Increase size when near cursor
-                        this.size = this.baseSize + (1 - distance / maxDistance) * 1.5;
-                    } else {
-                        // Normal floating movement
-                        this.x += this.speedX;
-                        this.y += this.speedY;
-                        this.size = this.baseSize;
-                    }
+                    // Gentle attraction
+                    const attractionStrength = 1.5 * force;
+                    this.vx += Math.cos(angle) * attractionStrength;
+                    this.vy += Math.sin(angle) * attractionStrength;
+
+                    // Slow orbital motion
+                    this.vx += Math.cos(tangentAngle) * attractionStrength * orbitStrength;
+                    this.vy += Math.sin(tangentAngle) * attractionStrength * orbitStrength;
                 } else {
-                    // Normal floating movement when no mouse
-                    this.x += this.speedX;
-                    this.y += this.speedY;
+                    // Return to base with gentle float
+                    const floatX = Math.sin(time * this.floatSpeed + this.floatOffset) * this.floatAmplitude;
+                    const floatY = Math.cos(time * this.floatSpeed * 0.7 + this.floatOffset) * (this.floatAmplitude * 0.6);
+
+                    const targetX = this.baseX + floatX;
+                    const targetY = this.baseY + floatY;
+
+                    this.vx += (targetX - this.x) * 0.008;
+                    this.vy += (targetY - this.y) * 0.008;
                 }
 
-                // Wrap around edges
-                if (this.x < 0) this.x = width;
-                if (this.x > width) this.x = 0;
-                if (this.y < 0) this.y = height;
-                if (this.y > height) this.y = 0;
+                this.vx *= this.friction;
+                this.vy *= this.friction;
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // Wrap edges
+                if (this.x < -20) this.x = width + 20;
+                if (this.x > width + 20) this.x = -20;
+                if (this.y < -20) this.y = height + 20;
+                if (this.y > height + 20) this.y = -20;
             }
 
-            draw() {
-                ctx.fillStyle = this.color;
+            draw(ctx) {
+                // SOLID circle - no gradient, no blur
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
                 ctx.fill();
             }
         }
 
-        // Create particles
-        particlesRef.current = [];
-        for (let i = 0; i < particleCount; i++) {
-            particlesRef.current.push(new Particle());
-        }
+        particlesRef.current = Array.from({ length: particleCount }, () => new Particle());
 
-        // Animation loop
-        const animate = () => {
-            ctx.clearRect(0, 0, width, height);
-
-            particlesRef.current.forEach(particle => {
-                particle.update();
-                particle.draw();
-            });
-
-            animationRef.current = requestAnimationFrame(animate);
-        };
-
-        animate();
-
-        // Mouse move handler
         const handleMouseMove = (e) => {
             mouseRef.current = { x: e.clientX, y: e.clientY };
         };
 
         const handleMouseLeave = () => {
-            mouseRef.current = { x: null, y: null };
+            mouseRef.current = { x: -1000, y: -1000 };
+        };
+
+        const handleResize = () => {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+            particlesRef.current.forEach(p => {
+                p.baseX = Math.random() * width;
+                p.baseY = Math.random() * height;
+            });
+        };
+
+        let time = 0;
+        const animate = () => {
+            time++;
+            ctx.clearRect(0, 0, width, height);
+
+            particlesRef.current.forEach(particle => {
+                particle.update(time);
+                particle.draw(ctx);
+            });
+
+            animationId = requestAnimationFrame(animate);
         };
 
         window.addEventListener('mousemove', handleMouseMove);
         window.addEventListener('mouseleave', handleMouseLeave);
+        window.addEventListener('resize', handleResize);
+        animate();
 
         return () => {
-            window.removeEventListener('resize', resizeCanvas);
             window.removeEventListener('mousemove', handleMouseMove);
             window.removeEventListener('mouseleave', handleMouseLeave);
-            if (animationRef.current) {
-                cancelAnimationFrame(animationRef.current);
-            }
+            window.removeEventListener('resize', handleResize);
+            cancelAnimationFrame(animationId);
         };
-    }, [particleCount, colors]);
+    }, [particleCount]);
 
     return (
         <canvas
@@ -152,7 +156,7 @@ const ParticleBackground = ({ particleCount = 35 }) => {
                 width: '100%',
                 height: '100%',
                 pointerEvents: 'none',
-                zIndex: 0,
+                zIndex: 1,
             }}
         />
     );
