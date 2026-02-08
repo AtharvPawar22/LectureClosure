@@ -37,5 +37,5 @@ const AnimatedCounter = ({
         </motion.span>
     );
 };
-
+//zamn
 export default AnimatedCounter;
