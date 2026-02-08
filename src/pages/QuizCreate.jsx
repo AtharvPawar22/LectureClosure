@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, FileUp, Settings, CheckCircle2, Loader2, Sparkles, X, AlertCircle, Brain, Zap, FileText, Share2, GripVertical, Plus, Trash2 } from 'lucide-react';
+import ShareModal from '../components/ShareModal';
+import { createQuiz, getQuizShareUrl } from '../services/quizService';
 
 const QuizCreate = () => {
     const [step, setStep] = useState(1);
@@ -13,6 +15,12 @@ const QuizCreate = () => {
         { text: 'Generating questions...', done: false },
         { text: 'Creating smart distractors...', done: false },
     ]);
+
+    // Share modal state
+    const [showShareModal, setShowShareModal] = useState(false);
+    const [shareUrl, setShareUrl] = useState('');
+    const [quizTitle, setQuizTitle] = useState('');
+    const [isGenerating, setIsGenerating] = useState(false);
 
     const handleFileUpload = (e) => {
         const uploadedFile = e.target.files[0];
@@ -480,14 +488,87 @@ const QuizCreate = () => {
                                     <Plus size={18} />
                                     Add Question
                                 </button>
-                                <button className="btn btn-primary" style={{ flex: 1, minWidth: '180px', padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', boxShadow: '0 8px 24px rgba(67, 97, 238, 0.25)' }}>
-                                    <Share2 size={18} />
-                                    Generate Quiz Link
+                                <button
+                                    onClick={async () => {
+                                        setIsGenerating(true);
+                                        // Demo questions - in production these would come from AI processing
+                                        const demoQuestions = [
+                                            {
+                                                id: 1,
+                                                text: "What is the primary role of mitochondria in a cell?",
+                                                options: ["Energy production (ATP)", "Protein synthesis", "Cell division", "DNA replication"],
+                                                correct: 0
+                                            },
+                                            {
+                                                id: 2,
+                                                text: "Which of the following describes anaerobic respiration best?",
+                                                options: ["Requires oxygen", "Occurs without oxygen", "Produces more ATP than aerobic", "Only happens in plants"],
+                                                correct: 1
+                                            },
+                                            {
+                                                id: 3,
+                                                text: "How many ATP molecules are produced in glycolysis?",
+                                                options: ["2 ATP", "4 ATP", "36 ATP", "38 ATP"],
+                                                correct: 0
+                                            }
+                                        ];
+
+                                        const title = file?.name?.replace(/\.[^/.]+$/, "") || 'Untitled Quiz';
+                                        setQuizTitle(title);
+
+                                        const result = await createQuiz({
+                                            title,
+                                            questions: demoQuestions,
+                                            timeLimit: 600
+                                        });
+
+                                        setIsGenerating(false);
+
+                                        if (result) {
+                                            setShareUrl(getQuizShareUrl(result.id));
+                                            setShowShareModal(true);
+                                        } else {
+                                            alert('Failed to create quiz. Please check your Supabase configuration.');
+                                        }
+                                    }}
+                                    disabled={isGenerating}
+                                    className="btn btn-primary"
+                                    style={{
+                                        flex: 1,
+                                        minWidth: '180px',
+                                        padding: '1rem',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '0.5rem',
+                                        boxShadow: '0 8px 24px rgba(67, 97, 238, 0.25)',
+                                        opacity: isGenerating ? 0.7 : 1,
+                                    }}
+                                >
+                                    {isGenerating ? (
+                                        <>
+                                            <Loader2 size={18} className="animate-spin" />
+                                            Generating...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Share2 size={18} />
+                                            Generate Quiz Link
+                                        </>
+                                    )}
                                 </button>
                             </div>
                         </motion.div>
                     )}
                 </AnimatePresence>
+
+                {/* Share Modal */}
+                <ShareModal
+                    isOpen={showShareModal}
+                    onClose={() => setShowShareModal(false)}
+                    quizUrl={shareUrl}
+                    quizTitle={quizTitle}
+                />
             </div>
         </div>
     );

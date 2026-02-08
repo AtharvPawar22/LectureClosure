@@ -4,6 +4,7 @@ import Landing from './pages/Landing';
 import Dashboard from './pages/Dashboard';
 import QuizCreate from './pages/QuizCreate';
 import Quiz from './pages/Quiz';
+import QuizStart from './pages/QuizStart';
 import Leaderboard from './pages/Leaderboard';
 import Header from './components/Header';
 
@@ -17,6 +18,7 @@ function App() {
             <Route path="/" element={<Landing />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/create" element={<QuizCreate />} />
+            <Route path="/quiz/:id/start" element={<QuizStart />} />
             <Route path="/quiz/:id" element={<Quiz />} />
             <Route path="/leaderboard/:id" element={<Leaderboard />} />
           </Routes>
@@ -27,3 +29,4 @@ function App() {
 }
 
 export default App;
+

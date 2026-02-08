@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle2, Trophy, ArrowRight, ArrowLeft, Send, Flame, Zap } from 'lucide-react';
-import { useParams, Link } from 'react-router-dom';
+import { CheckCircle2, Trophy, ArrowRight, ArrowLeft, Flame, Zap, Loader2, AlertCircle } from 'lucide-react';
+import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
 import CircularTimer from '../components/CircularTimer';
 import Confetti from '../components/Confetti';
 import AnimatedCounter from '../components/AnimatedCounter';
+import { getQuiz, saveAttempt } from '../services/quizService';
 
 const Quiz = () => {
     const { id } = useParams();
+    const location = useLocation();
+    const navigate = useNavigate();
+
     const [currentQuestion, setCurrentQuestion] = useState(0);
     const [selectedOption, setSelectedOption] = useState(null);
     const [timeLeft, setTimeLeft] = useState(600);
@@ -17,36 +21,70 @@ const Quiz = () => {
     const [showConfetti, setShowConfetti] = useState(false);
     const [justAnswered, setJustAnswered] = useState(false);
 
-    const questions = [
-        {
-            id: 1,
-            text: "What is the capital of India?",
-            options: ["New Delhi", "Mumbai", "Kolkata", "Chennai"],
-            correct: 0
-        },
-        {
-            id: 2,
-            text: "Which planet is known as the Red Planet?",
-            options: ["Earth", "Mars", "Jupiter", "Venus"],
-            correct: 1
-        },
-        {
-            id: 3,
-            text: "Who wrote 'Romeo and Juliet'?",
-            options: ["Charles Dickens", "William Shakespeare", "Mark Twain", "Leo Tolstoy"],
-            correct: 1
-        }
-    ];
+    // Dynamic quiz data
+    const [quiz, setQuiz] = useState(null);
+    const [questions, setQuestions] = useState([]);
+    const [studentName, setStudentName] = useState('');
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [startTime] = useState(Date.now());
+    const [attemptSaved, setAttemptSaved] = useState(false);
 
     useEffect(() => {
-        if (timeLeft > 0 && !isFinished) {
+        const loadQuiz = async () => {
+            // Check if we have quiz data from navigation state (from QuizStart)
+            if (location.state?.quiz && location.state?.studentName) {
+                setQuiz(location.state.quiz);
+                setQuestions(location.state.quiz.questions || []);
+                setStudentName(location.state.studentName);
+                setTimeLeft(location.state.quiz.time_limit || 600);
+                setLoading(false);
+                return;
+            }
+
+            // Otherwise, fetch from Supabase (for direct quiz access by creator)
+            const quizData = await getQuiz(id);
+            if (quizData) {
+                setQuiz(quizData);
+                setQuestions(quizData.questions || []);
+                setTimeLeft(quizData.time_limit || 600);
+                setLoading(false);
+            } else {
+                setError('Quiz not found');
+                setLoading(false);
+            }
+        };
+        loadQuiz();
+    }, [id, location.state]);
+
+    useEffect(() => {
+        if (timeLeft > 0 && !isFinished && !loading && questions.length > 0) {
             const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
             return () => clearTimeout(timer);
-        } else if (timeLeft === 0) {
-            setIsFinished(true);
-            setShowConfetti(true);
+        } else if (timeLeft === 0 && !isFinished) {
+            finishQuiz();
         }
-    }, [timeLeft, isFinished]);
+    }, [timeLeft, isFinished, loading, questions.length]);
+
+    const finishQuiz = async () => {
+        setIsFinished(true);
+        setShowConfetti(true);
+
+        // Save attempt if student name exists
+        if (studentName && !attemptSaved) {
+            const score = answers.filter((ans, idx) => ans === questions[idx]?.correct).length;
+            const timeTaken = Math.round((Date.now() - startTime) / 1000);
+
+            await saveAttempt({
+                quizId: id,
+                studentName,
+                score,
+                total: questions.length,
+                timeTaken
+            });
+            setAttemptSaved(true);
+        }
+    };
 
     const handleOptionSelect = (idx) => {
         setSelectedOption(idx);
@@ -59,7 +97,6 @@ const Quiz = () => {
         newAnswers[currentQuestion] = selectedOption;
         setAnswers(newAnswers);
 
-        // Update streak
         if (selectedOption === questions[currentQuestion].correct) {
             setStreak(prev => prev + 1);
         } else {
@@ -70,8 +107,10 @@ const Quiz = () => {
             setCurrentQuestion(currentQuestion + 1);
             setSelectedOption(newAnswers[currentQuestion + 1] ?? null);
         } else {
-            setIsFinished(true);
-            setShowConfetti(true);
+            // Quiz complete - save the final answer first
+            const finalAnswers = [...newAnswers];
+            setAnswers(finalAnswers);
+            finishQuiz();
         }
     };
 
@@ -94,9 +133,36 @@ const Quiz = () => {
         }
     };
 
+    // Loading state
+    if (loading) {
+        return (
+            <div style={{ minHeight: '100vh', background: 'linear-gradient(180deg, #F0F9FF 0%, #FFFFFF 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
+                    <Loader2 size={48} style={{ color: '#4361EE' }} />
+                </motion.div>
+            </div>
+        );
+    }
+
+    // Error state
+    if (error || questions.length === 0) {
+        return (
+            <div style={{ minHeight: '100vh', background: 'linear-gradient(180deg, #FEF2F2 0%, #FFFFFF 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ textAlign: 'center', maxWidth: '400px' }}>
+                    <div style={{ width: '80px', height: '80px', background: '#FEE2E2', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
+                        <AlertCircle size={40} style={{ color: '#EF4444' }} />
+                    </div>
+                    <h1 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '0.5rem', color: '#1A1A2E' }}>Quiz Not Available</h1>
+                    <p style={{ color: '#6B7280', marginBottom: '2rem' }}>{error || 'This quiz has no questions.'}</p>
+                    <button onClick={() => navigate('/')} className="btn btn-primary" style={{ padding: '1rem 2rem' }}>Go to Home</button>
+                </motion.div>
+            </div>
+        );
+    }
+
     // Completion screen
     if (isFinished) {
-        const score = answers.filter((ans, idx) => ans === questions[idx].correct).length;
+        const score = answers.filter((ans, idx) => ans === questions[idx]?.correct).length;
         const percentage = Math.round((score / questions.length) * 100);
 
         return (
@@ -137,6 +203,17 @@ const Quiz = () => {
                     >
                         Quiz Completed!
                     </motion.h1>
+
+                    {studentName && (
+                        <motion.p
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.45 }}
+                            style={{ color: '#4361EE', fontWeight: '600', marginBottom: '0.5rem' }}
+                        >
+                            Great job, {studentName}! 🎉
+                        </motion.p>
+                    )}
 
                     <motion.p
                         initial={{ opacity: 0 }}
@@ -261,11 +338,11 @@ const Quiz = () => {
                     </div>
 
                     {/* Right: Circular Timer */}
-                    <CircularTimer timeLeft={timeLeft} totalTime={600} size={100} strokeWidth={6} />
+                    <CircularTimer timeLeft={timeLeft} totalTime={quiz?.time_limit || 600} size={100} strokeWidth={6} />
                 </div>
 
                 {/* Question Dots Navigator */}
-                <div style={{ display: 'flex', justifyContent: 'center', gap: '0.75rem', marginBottom: '2rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '0.75rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
                     {questions.map((_, idx) => (
                         <motion.button
                             key={idx}
