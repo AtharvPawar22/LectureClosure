@@ -3,8 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, FileUp, Settings, CheckCircle2, Loader2, Sparkles, X, AlertCircle, Brain, Zap, FileText, Share2, GripVertical, Plus, Trash2 } from 'lucide-react';
 import ShareModal from '../components/ShareModal';
 import { createQuiz, getQuizShareUrl } from '../services/quizService';
+import { useAuth } from '../context/AuthContext';
 
 const QuizCreate = () => {
+    const { user } = useAuth();
     const [step, setStep] = useState(1);
     const [file, setFile] = useState(null);
     const [isDragging, setIsDragging] = useState(false);
@@ -519,7 +521,8 @@ const QuizCreate = () => {
                                         const result = await createQuiz({
                                             title,
                                             questions: demoQuestions,
-                                            timeLimit: 600
+                                            timeLimit: 600,
+                                            teacherId: user?.id
                                         });
 
                                         setIsGenerating(false);

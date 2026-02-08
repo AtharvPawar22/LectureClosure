@@ -2,19 +2,24 @@ import { supabase } from '../lib/supabase';
 
 /**
  * Create a new quiz and save to Supabase
- * @param {Object} quizData - { title, questions, timeLimit }
+ * @param {Object} quizData - { title, questions, timeLimit, teacherId }
  * @returns {Promise<{id: string} | null>}
  */
-export async function createQuiz({ title, questions, timeLimit = 600 }) {
+export async function createQuiz({ title, questions, timeLimit = 600, teacherId = null }) {
+    const insertData = {
+        title,
+        questions,
+        time_limit: timeLimit
+    };
+
+    // Only add teacher_id if provided
+    if (teacherId) {
+        insertData.teacher_id = teacherId;
+    }
+
     const { data, error } = await supabase
         .from('quizzes')
-        .insert([
-            {
-                title,
-                questions,
-                time_limit: timeLimit
-            }
-        ])
+        .insert([insertData])
         .select('id')
         .single();
 
@@ -102,4 +107,64 @@ export async function getLeaderboard(quizId) {
  */
 export function getQuizShareUrl(quizId) {
     return `${window.location.origin}/quiz/${quizId}/start`;
+}
+
+/**
+ * Get all quizzes for a specific teacher
+ * @param {string} teacherId - Teacher's user ID
+ * @returns {Promise<Array>}
+ */
+export async function getTeacherQuizzes(teacherId) {
+    const { data, error } = await supabase
+        .from('quizzes')
+        .select('*')
+        .eq('teacher_id', teacherId)
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching teacher quizzes:', error);
+        return [];
+    }
+
+    return data || [];
+}
+
+/**
+ * Get quiz count stats for a teacher
+ * @param {string} teacherId - Teacher's user ID
+ * @returns {Promise<{totalQuizzes: number, totalAttempts: number}>}
+ */
+export async function getTeacherStats(teacherId) {
+    // Get quizzes
+    const { data: quizzes, error: quizError } = await supabase
+        .from('quizzes')
+        .select('id')
+        .eq('teacher_id', teacherId);
+
+    if (quizError) {
+        console.error('Error fetching stats:', quizError);
+        return { totalQuizzes: 0, totalAttempts: 0 };
+    }
+
+    const quizIds = quizzes?.map(q => q.id) || [];
+
+    if (quizIds.length === 0) {
+        return { totalQuizzes: 0, totalAttempts: 0 };
+    }
+
+    // Get attempts for those quizzes
+    const { count, error: attemptError } = await supabase
+        .from('attempts')
+        .select('*', { count: 'exact', head: true })
+        .in('quiz_id', quizIds);
+
+    if (attemptError) {
+        console.error('Error fetching attempt stats:', attemptError);
+        return { totalQuizzes: quizIds.length, totalAttempts: 0 };
+    }
+
+    return {
+        totalQuizzes: quizIds.length,
+        totalAttempts: count || 0
+    };
 }
