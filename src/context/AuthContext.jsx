@@ -19,44 +19,65 @@ export const AuthProvider = ({ children }) => {
     const [isDemoMode, setIsDemoMode] = useState(!isSupabaseConfigured);
 
     useEffect(() => {
+        // Safety timeout — never stay on spinner for more than 5 seconds
+        const safetyTimeout = setTimeout(() => {
+            setLoading(false);
+        }, 5000);
+
         // Check initial session
         const initAuth = async () => {
             if (!isSupabaseConfigured) {
-                // Demo mode - no authentication
                 setIsDemoMode(true);
                 setLoading(false);
                 return;
             }
 
-            const { session } = await getSession();
-            if (session?.user) {
-                setUser(session.user);
-                const { profile } = await getTeacherProfile(session.user.id);
-                setProfile(profile);
+            try {
+                const { session } = await getSession();
+                if (session?.user) {
+                    setUser(session.user);
+                    try {
+                        const { profile } = await getTeacherProfile(session.user.id);
+                        setProfile(profile);
+                    } catch (profileErr) {
+                        console.warn('Could not load teacher profile:', profileErr);
+                    }
+                }
+            } catch (err) {
+                console.error('Auth initialization error:', err);
+            } finally {
+                setLoading(false);
             }
-            setLoading(false);
         };
 
         initAuth();
 
         // Subscribe to auth changes
         const { data: { subscription } } = onAuthStateChange(async (event, session) => {
-            if (!isSupabaseConfigured) {
-                return;
-            }
+            if (!isSupabaseConfigured) return;
 
-            if (session?.user) {
-                setUser(session.user);
-                const { profile } = await getTeacherProfile(session.user.id);
-                setProfile(profile);
-            } else {
-                setUser(null);
-                setProfile(null);
+            try {
+                if (session?.user) {
+                    setUser(session.user);
+                    try {
+                        const { profile } = await getTeacherProfile(session.user.id);
+                        setProfile(profile);
+                    } catch (profileErr) {
+                        console.warn('Could not load teacher profile:', profileErr);
+                    }
+                } else {
+                    setUser(null);
+                    setProfile(null);
+                }
+            } catch (err) {
+                console.error('Auth state change error:', err);
+            } finally {
+                setLoading(false);
             }
-            setLoading(false);
         });
 
         return () => {
+            clearTimeout(safetyTimeout);
             subscription?.unsubscribe();
         };
     }, []);

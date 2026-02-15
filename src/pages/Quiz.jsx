@@ -90,11 +90,11 @@ const Quiz = () => {
         setSaving(true);
         const timeTaken = Math.round((Date.now() - startTime) / 1000);
         await saveAttempt({
-            quiz_id: id,
-            student_name: studentName,
+            quizId: id,
+            studentName: studentName,
             score: finalScore,
-            answers: answers,
-            time_taken: timeTaken,
+            total: quiz.questions.length,
+            timeTaken: timeTaken,
         });
         setSaving(false);
     };

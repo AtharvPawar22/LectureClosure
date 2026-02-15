@@ -108,10 +108,10 @@ CREATE POLICY "Anyone can view active quizzes"
     ON quizzes FOR SELECT
     USING (is_active = true);
 
--- Teachers can create quizzes
-CREATE POLICY "Teachers can create quizzes"
+-- Authenticated users can create quizzes (teacher_id is optional)
+CREATE POLICY "Authenticated users can create quizzes"
     ON quizzes FOR INSERT
-    WITH CHECK (teacher_id = auth.uid());
+    WITH CHECK (auth.uid() IS NOT NULL);
 
 -- Teachers can update their own quizzes
 CREATE POLICY "Teachers can update own quizzes"

@@ -7,10 +7,19 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 export const isSupabaseConfigured = !!(supabaseUrl && supabaseAnonKey);
 
 if (!isSupabaseConfigured) {
-    console.warn('Supabase credentials not found. Running in demo mode. Please create a .env file with VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.');
+    console.warn('Supabase credentials not found. Running in demo mode.');
 }
 
-// Create Supabase client only if credentials are available
-export const supabase = isSupabaseConfigured 
-    ? createClient(supabaseUrl, supabaseAnonKey)
+// Create Supabase client
+// NOTE: persistSession is disabled to prevent GoTrueClient localStorage deadlock
+// that causes ALL Supabase operations (queries, inserts) to hang indefinitely.
+export const supabase = isSupabaseConfigured
+    ? createClient(supabaseUrl, supabaseAnonKey, {
+        auth: {
+            persistSession: false,
+            autoRefreshToken: true,
+            detectSessionInUrl: true,
+        },
+    })
     : null;
+

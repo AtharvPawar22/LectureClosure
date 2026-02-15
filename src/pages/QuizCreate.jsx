@@ -527,30 +527,35 @@ const QuizCreate = () => {
                                 <button
                                     onClick={async () => {
                                         setIsGenerating(true);
-                                        const quizQuestions = demoQuestions.map((q, i) => ({
-                                            id: i + 1,
-                                            text: q.q,
-                                            options: q.options,
-                                            correct: 0,
-                                        }));
+                                        try {
+                                            const quizQuestions = demoQuestions.map((q, i) => ({
+                                                id: i + 1,
+                                                text: q.q,
+                                                options: q.options,
+                                                correct: 0,
+                                            }));
 
-                                        const title = file?.name?.replace(/\.[^/.]+$/, "") || 'Untitled Quiz';
-                                        setQuizTitle(title);
+                                            const title = file?.name?.replace(/\.[^/.]+$/, "") || 'Untitled Quiz';
+                                            setQuizTitle(title);
 
-                                        const result = await createQuiz({
-                                            title,
-                                            questions: quizQuestions,
-                                            timeLimit: 600,
-                                            teacherId: user?.id
-                                        });
+                                            const result = await createQuiz({
+                                                title,
+                                                questions: quizQuestions,
+                                                timeLimit: 600,
+                                                teacherId: user?.id
+                                            });
 
-                                        setIsGenerating(false);
-
-                                        if (result) {
-                                            setShareUrl(getQuizShareUrl(result.id));
-                                            setShowShareModal(true);
-                                        } else {
-                                            alert('Failed to create quiz. Please check your Supabase configuration.');
+                                            if (result) {
+                                                setShareUrl(getQuizShareUrl(result.id));
+                                                setShowShareModal(true);
+                                            } else {
+                                                alert('Failed to create quiz. Please check your Supabase configuration and ensure the database schema is set up correctly.');
+                                            }
+                                        } catch (err) {
+                                            console.error('Quiz creation error:', err);
+                                            alert('An unexpected error occurred while creating the quiz. Check the browser console for details.');
+                                        } finally {
+                                            setIsGenerating(false);
                                         }
                                     }}
                                     disabled={isGenerating}

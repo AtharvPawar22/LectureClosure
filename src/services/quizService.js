@@ -1,6 +1,60 @@
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 /**
+ * Helper: wrap a promise with a timeout so it never hangs
+ */
+function withTimeout(promise, ms = 10000) {
+    return Promise.race([
+        promise,
+        new Promise((_, reject) =>
+            setTimeout(() => reject(new Error(`Request timed out after ${ms}ms`)), ms)
+        )
+    ]);
+}
+
+/**
+ * Helper: try to insert a quiz row. Uses .insert() WITHOUT .select().single()
+ * to avoid the Supabase hang when RLS silently blocks the insert.
+ * Then fetches the latest quiz by title to get the ID.
+ */
+async function tryInsertQuiz(insertData) {
+    try {
+        console.log('Inserting quiz:', JSON.stringify({ ...insertData, questions: `[${insertData.questions?.length} questions]` }));
+
+        const { error } = await withTimeout(
+            supabase.from('quizzes').insert([insertData]),
+            8000
+        );
+
+        if (error) {
+            console.warn('Insert returned error:', error.message, error.code);
+            return { data: null, error };
+        }
+
+        // Insert succeeded (no error). Now fetch the quiz we just created.
+        const { data: rows, error: fetchError } = await withTimeout(
+            supabase
+                .from('quizzes')
+                .select('id')
+                .eq('title', insertData.title)
+                .order('created_at', { ascending: false })
+                .limit(1),
+            8000
+        );
+
+        if (fetchError || !rows || rows.length === 0) {
+            console.warn('Insert reported success but quiz not found. RLS may have blocked it silently.');
+            return { data: null, error: fetchError || new Error('Quiz not found after insert') };
+        }
+
+        return { data: rows[0], error: null };
+    } catch (err) {
+        console.warn('tryInsertQuiz caught error:', err.message);
+        return { data: null, error: err };
+    }
+}
+
+/**
  * Create a new quiz and save to Supabase
  * @param {Object} quizData - { title, questions, timeLimit, teacherId }
  * @returns {Promise<{id: string} | null>}
@@ -11,29 +65,75 @@ export async function createQuiz({ title, questions, timeLimit = 600, teacherId 
         return null;
     }
 
-    const insertData = {
-        title,
-        questions,
-        time_limit: timeLimit
-    };
+    try {
+        // ── Attempt 1: Insert with teacher_id ──
+        if (teacherId) {
+            console.log('Attempt 1: Creating quiz with teacher_id:', teacherId);
+            const { data, error } = await tryInsertQuiz({
+                title, questions, time_limit: timeLimit, teacher_id: teacherId
+            });
 
-    // Only add teacher_id if provided
-    if (teacherId) {
-        insertData.teacher_id = teacherId;
-    }
+            if (data) {
+                console.log('✅ Quiz created successfully:', data.id);
+                return data;
+            }
 
-    const { data, error } = await supabase
-        .from('quizzes')
-        .insert([insertData])
-        .select('id')
-        .single();
+            console.warn('Attempt 1 failed:', error?.message);
 
-    if (error) {
-        console.error('Error creating quiz:', error);
+            // ── Attempt 2: Auto-fix missing teacher profile, then retry ──
+            console.log('Attempt 2: Checking if teacher profile exists...');
+            try {
+                const { data: { user } } = await withTimeout(supabase.auth.getUser(), 5000);
+                if (user && user.id === teacherId) {
+                    const { data: teacher } = await withTimeout(
+                        supabase.from('teachers').select('id').eq('id', teacherId).maybeSingle(),
+                        5000
+                    );
+
+                    if (!teacher) {
+                        console.log('Teacher profile missing — creating it now...');
+                        await withTimeout(
+                            supabase.from('teachers').insert([{
+                                id: teacherId,
+                                email: user.email,
+                                full_name: user.user_metadata?.full_name || 'Teacher'
+                            }]),
+                            5000
+                        );
+                        console.log('Teacher profile created. Retrying quiz insert...');
+
+                        const { data: retryData } = await tryInsertQuiz({
+                            title, questions, time_limit: timeLimit, teacher_id: teacherId
+                        });
+
+                        if (retryData) {
+                            console.log('✅ Quiz created after auto-fix:', retryData.id);
+                            return retryData;
+                        }
+                    }
+                }
+            } catch (autoFixErr) {
+                console.warn('Auto-fix attempt failed:', autoFixErr.message);
+            }
+        }
+
+        // ── Attempt 3: Insert WITHOUT teacher_id ──
+        console.log('Attempt 3: Creating quiz without teacher_id...');
+        const { data: fallbackData, error: fallbackError } = await tryInsertQuiz({
+            title, questions, time_limit: timeLimit
+        });
+
+        if (fallbackData) {
+            console.log('✅ Quiz created (no teacher_id):', fallbackData.id);
+            return fallbackData;
+        }
+
+        console.error('❌ All 3 attempts failed. Last error:', fallbackError?.message);
+        return null;
+    } catch (err) {
+        console.error('❌ Unexpected error creating quiz:', err.message);
         return null;
     }
-
-    return data;
 }
 
 /**

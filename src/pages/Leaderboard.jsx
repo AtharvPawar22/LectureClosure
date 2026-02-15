@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Search, ArrowLeft, Share2, Clock, Target, Users, Loader2 } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { getLeaderboard, getQuiz, getQuizShareUrl } from '../services/quizService';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 const Leaderboard = () => {
     const { id } = useParams();
@@ -25,12 +26,38 @@ const Leaderboard = () => {
         };
         fetchData();
 
-        // Real-time polling
+        // Supabase Realtime subscription for instant leaderboard updates
+        let channel = null;
+        if (isSupabaseConfigured && supabase) {
+            channel = supabase
+                .channel(`leaderboard-${id}`)
+                .on(
+                    'postgres_changes',
+                    {
+                        event: 'INSERT',
+                        schema: 'public',
+                        table: 'attempts',
+                        filter: `quiz_id=eq.${id}`,
+                    },
+                    async () => {
+                        // Re-fetch the full sorted leaderboard on any new attempt
+                        const lbData = await getLeaderboard(id);
+                        if (lbData) setLeaderboard(lbData);
+                    }
+                )
+                .subscribe();
+        }
+
+        // Fallback polling every 10s in case realtime isn't available
         const interval = setInterval(async () => {
             const lbData = await getLeaderboard(id);
             if (lbData) setLeaderboard(lbData);
-        }, 5000);
-        return () => clearInterval(interval);
+        }, 10000);
+
+        return () => {
+            clearInterval(interval);
+            if (channel) supabase.removeChannel(channel);
+        };
     }, [id]);
 
     const filteredEntries = leaderboard.filter(entry =>
