@@ -23,11 +23,17 @@ const QuizCreate = () => {
     const [shareUrl, setShareUrl] = useState('');
     const [quizTitle, setQuizTitle] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
+    const [questions, setQuestions] = useState([
+        { q: "What is the primary role of mitochondria in a cell?", type: 'MCQ', difficulty: 'Easy', options: ['Energy production (ATP)', 'Protein synthesis', 'Cell division', 'DNA replication'] },
+        { q: "Which of the following describes anaerobic respiration best?", type: 'MCQ', difficulty: 'Medium', options: ['Requires oxygen', 'Occurs without oxygen', 'Produces more ATP than aerobic', 'Only happens in plants'] },
+        { q: "How many ATP molecules are produced in glycolysis?", type: 'MCQ', difficulty: 'Hard', options: ['2 ATP', '4 ATP', '36 ATP', '38 ATP'] },
+    ]);
 
     const handleFileUpload = (e) => {
         const uploadedFile = e.target.files[0];
         if (uploadedFile) {
             setFile(uploadedFile);
+            setQuizTitle(uploadedFile.name.replace(/\.[^/.]+$/, ""));
             setStep(2);
             simulateProcessing();
         }
@@ -61,16 +67,11 @@ const QuizCreate = () => {
         const uploadedFile = e.dataTransfer.files[0];
         if (uploadedFile) {
             setFile(uploadedFile);
+            setQuizTitle(uploadedFile.name.replace(/\.[^/.]+$/, ""));
             setStep(2);
             simulateProcessing();
         }
     };
-
-    const demoQuestions = [
-        { q: "What is the primary role of mitochondria in a cell?", type: 'MCQ', difficulty: 'Easy', options: ['Energy production (ATP)', 'Protein synthesis', 'Cell division', 'DNA replication'] },
-        { q: "Which of the following describes anaerobic respiration best?", type: 'MCQ', difficulty: 'Medium', options: ['Requires oxygen', 'Occurs without oxygen', 'Produces more ATP than aerobic', 'Only happens in plants'] },
-        { q: "How many ATP molecules are produced in glycolysis?", type: 'MCQ', difficulty: 'Hard', options: ['2 ATP', '4 ATP', '36 ATP', '38 ATP'] },
-    ];
 
     // Subtle AI sparkle SVG
     const AiSparkle = () => (
@@ -373,12 +374,26 @@ const QuizCreate = () => {
                                 }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                                         <AiSparkle />
-                                        <div>
-                                            <h2 style={{ fontSize: '0.9375rem', fontWeight: '600', fontFamily: 'var(--font-body)', color: 'var(--text-primary)' }}>
-                                                Generated Questions
-                                            </h2>
+                                        <div style={{ flex: 1 }}>
+                                            <input
+                                                type="text"
+                                                value={quizTitle}
+                                                onChange={(e) => setQuizTitle(e.target.value)}
+                                                placeholder="Enter quiz title..."
+                                                style={{
+                                                    fontSize: '0.9375rem',
+                                                    fontWeight: '600',
+                                                    fontFamily: 'var(--font-body)',
+                                                    color: 'var(--text-primary)',
+                                                    background: 'transparent',
+                                                    border: 'none',
+                                                    padding: '0',
+                                                    width: '100%',
+                                                    marginBottom: '2px',
+                                                }}
+                                            />
                                             <p style={{ fontSize: '0.6875rem', color: 'var(--text-dim)' }}>
-                                                {demoQuestions.length} questions from your content
+                                                Check the questions below before generating your link
                                             </p>
                                         </div>
                                     </div>
@@ -402,7 +417,7 @@ const QuizCreate = () => {
 
                                 {/* Questions List */}
                                 <div>
-                                    {demoQuestions.map((question, idx) => (
+                                    {questions.map((question, idx) => (
                                         <motion.div
                                             key={idx}
                                             initial={{ opacity: 0 }}
@@ -528,18 +543,17 @@ const QuizCreate = () => {
                                     onClick={async () => {
                                         setIsGenerating(true);
                                         try {
-                                            const quizQuestions = demoQuestions.map((q, i) => ({
+                                            const quizQuestions = questions.map((q, i) => ({
                                                 id: i + 1,
                                                 text: q.q,
                                                 options: q.options,
                                                 correct: 0,
                                             }));
 
-                                            const title = file?.name?.replace(/\.[^/.]+$/, "") || 'Untitled Quiz';
-                                            setQuizTitle(title);
+                                            const finalTitle = quizTitle || file?.name?.replace(/\.[^/.]+$/, "") || 'Untitled Quiz';
 
                                             const result = await createQuiz({
-                                                title,
+                                                title: finalTitle,
                                                 questions: quizQuestions,
                                                 timeLimit: 600,
                                                 teacherId: user?.id
@@ -549,11 +563,11 @@ const QuizCreate = () => {
                                                 setShareUrl(getQuizShareUrl(result.id));
                                                 setShowShareModal(true);
                                             } else {
-                                                alert('Failed to create quiz. Please check your Supabase configuration and ensure the database schema is set up correctly.');
+                                                alert('Failed to create quiz. Please check your Supabase configuration.');
                                             }
                                         } catch (err) {
                                             console.error('Quiz creation error:', err);
-                                            alert('An unexpected error occurred while creating the quiz. Check the browser console for details.');
+                                            alert('An unexpected error occurred. Check the console.');
                                         } finally {
                                             setIsGenerating(false);
                                         }

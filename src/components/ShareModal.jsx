@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Copy, Check, Link2 } from 'lucide-react';
+import { X, Copy, Check, Link2, MessageCircle, Mail } from 'lucide-react';
 
 const ShareModal = ({ isOpen, onClose, quizUrl, quizTitle }) => {
     const [copied, setCopied] = useState(false);
@@ -13,6 +13,17 @@ const ShareModal = ({ isOpen, onClose, quizUrl, quizTitle }) => {
         } catch (err) {
             console.error('Failed to copy:', err);
         }
+    };
+
+    const shareWhatsApp = () => {
+        const text = `Hey class! Here's the quiz for today: ${quizTitle || 'Quiz'}. Take it at: ${quizUrl}`;
+        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+    };
+
+    const shareEmail = () => {
+        const subject = `Quiz: ${quizTitle || 'Lecture Closer'}`;
+        const body = `Hi students,\n\nPlease complete this quiz using the following link:\n${quizUrl}\n\nGood luck!`;
+        window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
     };
 
     if (!isOpen) return null;
@@ -117,7 +128,7 @@ const ShareModal = ({ isOpen, onClose, quizUrl, quizTitle }) => {
                     <div style={{
                         display: 'flex',
                         gap: '0.5rem',
-                        marginBottom: '1.25rem',
+                        marginBottom: '1.5rem',
                     }}>
                         <input
                             type="text"
@@ -127,6 +138,10 @@ const ShareModal = ({ isOpen, onClose, quizUrl, quizTitle }) => {
                                 flex: 1,
                                 fontSize: '0.8125rem',
                                 padding: '0.625rem 0.875rem',
+                                background: 'var(--bg-secondary)',
+                                border: '1px solid var(--border-primary)',
+                                borderRadius: '4px',
+                                color: 'var(--text-secondary)',
                             }}
                         />
                         <button
@@ -138,13 +153,19 @@ const ShareModal = ({ isOpen, onClose, quizUrl, quizTitle }) => {
                                 flexShrink: 0,
                                 background: copied ? 'var(--success)' : undefined,
                                 color: copied ? '#fff' : undefined,
+                                minWidth: '90px',
+                                justifyContent: 'center',
                             }}
                         >
                             {copied ? (
-                                <>
+                                <motion.div
+                                    initial={{ scale: 0.8 }}
+                                    animate={{ scale: 1 }}
+                                    style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
+                                >
                                     <Check size={14} />
                                     Copied
-                                </>
+                                </motion.div>
                             ) : (
                                 <>
                                     <Copy size={14} />
@@ -154,13 +175,52 @@ const ShareModal = ({ isOpen, onClose, quizUrl, quizTitle }) => {
                         </button>
                     </div>
 
+                    {/* Social Buttons */}
+                    <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: '1fr 1fr',
+                        gap: '0.75rem',
+                        marginBottom: '1.5rem',
+                    }}>
+                        <button
+                            onClick={shareWhatsApp}
+                            className="btn btn-outline"
+                            style={{
+                                padding: '0.75rem',
+                                fontSize: '0.8125rem',
+                                gap: '0.625rem',
+                                color: 'var(--success)',
+                                borderColor: 'var(--success-muted)',
+                            }}
+                        >
+                            <MessageCircle size={16} />
+                            WhatsApp
+                        </button>
+                        <button
+                            onClick={shareEmail}
+                            className="btn btn-outline"
+                            style={{
+                                padding: '0.75rem',
+                                fontSize: '0.8125rem',
+                                gap: '0.625rem',
+                            }}
+                        >
+                            <Mail size={16} />
+                            Email
+                        </button>
+                    </div>
+
                     {/* Tip */}
                     <p style={{
                         fontSize: '0.6875rem',
                         color: 'var(--text-dim)',
                         lineHeight: 1.6,
+                        background: 'var(--bg-secondary)',
+                        padding: '0.75rem',
+                        borderRadius: '4px',
+                        borderLeft: '2px solid var(--accent)',
                     }}>
-                        Students will enter their name before starting. Scores appear on the leaderboard automatically.
+                        <strong>Tip:</strong> Students will enter their name before starting. Scores appear on the leaderboard automatically.
                     </p>
                 </motion.div>
             </motion.div>
@@ -169,3 +229,4 @@ const ShareModal = ({ isOpen, onClose, quizUrl, quizTitle }) => {
 };
 
 export default ShareModal;
+

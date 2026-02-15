@@ -3,7 +3,8 @@ import { motion } from 'framer-motion';
 import { Plus, Search, FileText, Users, BarChart2, Share2, Trash2, ExternalLink, Clock, ChevronRight, Loader2, LayoutDashboard, Zap, Settings, LogOut } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { getTeacherQuizzes, getTeacherStats, getQuizShareUrl } from '../services/quizService';
+import { getTeacherQuizzes, getTeacherStats, getQuizShareUrl, deleteQuiz } from '../services/quizService';
+import ShareModal from '../components/ShareModal';
 
 const Dashboard = () => {
     const { user, profile } = useAuth();
@@ -12,6 +13,10 @@ const Dashboard = () => {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [sidebarExpanded, setSidebarExpanded] = useState(false);
+
+    // Share Modal State
+    const [shareModalOpen, setShareModalOpen] = useState(false);
+    const [selectedQuiz, setSelectedQuiz] = useState({ url: '', title: '' });
 
     useEffect(() => {
         const fetchData = async () => {
@@ -377,43 +382,94 @@ const Dashboard = () => {
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                navigator.clipboard.writeText(getQuizShareUrl(quiz.id));
+                                                setSelectedQuiz({
+                                                    url: getQuizShareUrl(quiz.id),
+                                                    title: quiz.title
+                                                });
+                                                setShareModalOpen(true);
                                             }}
                                             style={{
-                                                padding: '4px 10px',
-                                                fontSize: '0.625rem',
+                                                padding: '6px 14px',
+                                                fontSize: '0.75rem',
                                                 fontWeight: '600',
                                                 color: 'var(--accent)',
                                                 background: 'var(--accent-muted)',
                                                 border: 'none',
-                                                borderRadius: '3px',
+                                                borderRadius: '4px',
                                                 cursor: 'pointer',
                                                 display: 'flex',
                                                 alignItems: 'center',
-                                                gap: '4px',
+                                                gap: '6px',
+                                                transition: 'all 0.2s ease',
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                e.currentTarget.style.background = 'var(--accent)';
+                                                e.currentTarget.style.color = '#fff';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.currentTarget.style.background = 'var(--accent-muted)';
+                                                e.currentTarget.style.color = 'var(--accent)';
                                             }}
                                         >
-                                            <Share2 size={10} />
-                                            Copy Link
+                                            <Share2 size={13} />
+                                            Share
                                         </button>
                                         <Link
                                             to={`/leaderboard/${quiz.id}`}
+                                            onClick={(e) => e.stopPropagation()}
                                             style={{
-                                                padding: '4px 10px',
-                                                fontSize: '0.625rem',
+                                                padding: '6px 14px',
+                                                fontSize: '0.75rem',
                                                 fontWeight: '600',
-                                                color: 'var(--text-muted)',
+                                                color: 'var(--text-secondary)',
                                                 background: 'var(--bg-elevated)',
-                                                borderRadius: '3px',
+                                                borderRadius: '4px',
                                                 display: 'flex',
                                                 alignItems: 'center',
-                                                gap: '4px',
+                                                gap: '6px',
                                                 border: '1px solid var(--border-primary)',
+                                                textDecoration: 'none',
+                                                transition: 'all 0.2s ease',
                                             }}
+                                            onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--border-secondary)'}
+                                            onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border-primary)'}
                                         >
-                                            <BarChart2 size={10} />
+                                            <BarChart2 size={13} />
                                             Results
                                         </Link>
+                                        <div style={{ flex: 1 }} />
+                                        <button
+                                            onClick={async (e) => {
+                                                e.stopPropagation();
+                                                if (window.confirm('Are you sure you want to delete this quiz?')) {
+                                                    const success = await deleteQuiz(quiz.id);
+                                                    if (success) {
+                                                        setQuizzes(prev => prev.filter(q => q.id !== quiz.id));
+                                                    } else {
+                                                        alert('Failed to delete quiz.');
+                                                    }
+                                                }
+                                            }}
+                                            style={{
+                                                padding: '6px',
+                                                borderRadius: '4px',
+                                                border: '1px solid transparent',
+                                                background: 'transparent',
+                                                color: 'var(--text-dim)',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.2s ease',
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                e.currentTarget.style.color = 'var(--error)';
+                                                e.currentTarget.style.background = 'var(--error-muted)';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.currentTarget.style.color = 'var(--text-dim)';
+                                                e.currentTarget.style.background = 'transparent';
+                                            }}
+                                        >
+                                            <Trash2 size={13} />
+                                        </button>
                                     </div>
                                 </motion.div>
                             );
@@ -421,8 +477,16 @@ const Dashboard = () => {
                     </div>
                 )}
             </main>
+
+            <ShareModal
+                isOpen={shareModalOpen}
+                onClose={() => setShareModalOpen(false)}
+                quizUrl={selectedQuiz.url}
+                quizTitle={selectedQuiz.title}
+            />
         </div>
     );
 };
+
 
 export default Dashboard;

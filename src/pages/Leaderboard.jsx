@@ -4,6 +4,7 @@ import { Search, ArrowLeft, Share2, Clock, Target, Users, Loader2 } from 'lucide
 import { Link, useParams } from 'react-router-dom';
 import { getLeaderboard, getQuiz, getQuizShareUrl } from '../services/quizService';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import ShareModal from '../components/ShareModal';
 
 const Leaderboard = () => {
     const { id } = useParams();
@@ -12,6 +13,7 @@ const Leaderboard = () => {
     const [quiz, setQuiz] = useState(null);
     const [loading, setLoading] = useState(true);
     const [shareUrl, setShareUrl] = useState('');
+    const [shareModalOpen, setShareModalOpen] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -26,7 +28,6 @@ const Leaderboard = () => {
         };
         fetchData();
 
-        // Supabase Realtime subscription for instant leaderboard updates
         let channel = null;
         if (isSupabaseConfigured && supabase) {
             channel = supabase
@@ -40,7 +41,6 @@ const Leaderboard = () => {
                         filter: `quiz_id=eq.${id}`,
                     },
                     async () => {
-                        // Re-fetch the full sorted leaderboard on any new attempt
                         const lbData = await getLeaderboard(id);
                         if (lbData) setLeaderboard(lbData);
                     }
@@ -48,7 +48,6 @@ const Leaderboard = () => {
                 .subscribe();
         }
 
-        // Fallback polling every 10s in case realtime isn't available
         const interval = setInterval(async () => {
             const lbData = await getLeaderboard(id);
             if (lbData) setLeaderboard(lbData);
@@ -65,7 +64,7 @@ const Leaderboard = () => {
     );
 
     const avgScore = leaderboard.length > 0
-        ? Math.round(leaderboard.reduce((sum, e) => sum + e.score, 0) / leaderboard.length)
+        ? Math.round(leaderboard.reduce((sum, e) => sum + (e.score || 0), 0) / leaderboard.length)
         : 0;
     const avgTime = leaderboard.length > 0
         ? Math.round(leaderboard.reduce((sum, e) => sum + (e.time_taken || 0), 0) / leaderboard.length)
@@ -126,7 +125,6 @@ const Leaderboard = () => {
                                 gap: '0.5rem',
                             }}>
                                 Leaderboard
-                                {/* Live indicator */}
                                 <span style={{
                                     width: '6px',
                                     height: '6px',
@@ -148,7 +146,7 @@ const Leaderboard = () => {
                             </h1>
                         </div>
                         <button
-                            onClick={() => navigator.clipboard.writeText(shareUrl)}
+                            onClick={() => setShareModalOpen(true)}
                             className="btn btn-outline"
                             style={{ padding: '0.5rem 1rem', fontSize: '0.75rem' }}
                         >
@@ -319,7 +317,7 @@ const Leaderboard = () => {
                                             <div style={{
                                                 width: `${(entry.score / maxScore) * 100}%`,
                                                 height: '100%',
-                                                background: entry.score >= 70 ? 'var(--success)' : entry.score >= 50 ? 'var(--warning)' : 'var(--error)',
+                                                background: (entry.score || 0) >= 70 ? 'var(--success)' : (entry.score || 0) >= 50 ? 'var(--warning)' : 'var(--error)',
                                                 borderRadius: '1px',
                                                 transition: 'width 300ms ease',
                                             }} />
@@ -333,9 +331,9 @@ const Leaderboard = () => {
                                         fontWeight: '700',
                                         fontFamily: 'var(--font-mono)',
                                         fontVariantNumeric: 'tabular-nums',
-                                        color: entry.score >= 70 ? 'var(--success)' : entry.score >= 50 ? 'var(--warning)' : 'var(--error)',
+                                        color: (entry.score || 0) >= 70 ? 'var(--success)' : (entry.score || 0) >= 50 ? 'var(--warning)' : 'var(--error)',
                                     }}>
-                                        {entry.score}%
+                                        {entry.score || 0}%
                                     </span>
 
                                     {/* Time */}
@@ -354,6 +352,13 @@ const Leaderboard = () => {
                     )}
                 </div>
             </div>
+
+            <ShareModal
+                isOpen={shareModalOpen}
+                onClose={() => setShareModalOpen(false)}
+                quizUrl={shareUrl}
+                quizTitle={quiz?.title || 'Quiz Results'}
+            />
         </div>
     );
 };
